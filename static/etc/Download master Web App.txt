@@ -1,10 +1,10 @@
 1. Link download File Master webapp, ketikkan
 —---------------
-$ git clone https://github.com/imamcs19/pyIntroMLearn.git
+$ git clone https://github.com/imamcs19/pyIR.git
 
 2. Lalu ketikkan 
 ------------------
-$ mv -f pyIntroMLearn/* mysite/
+$ mv -f pyIR/* mysite/
 , lalu tekan Reload pada menu Web
 
 3. pip install -r ./mysite/requirements.txt
