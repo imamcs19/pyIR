@@ -1,5 +1,5 @@
-# Koding Contoh MK Pengantar Pembelajaran Mesin (PPM) / Intro Machine Learning (Intro MLearn) Filkom UB
-# Rencana Pembelajaran MK Intro Machine Learning Semester Genap 2022/2023 Kelas B dan untuk lainnya
+# Koding Contoh MK Information Retrieval (IR) Filkom UB
+# Rencana Pembelajaran Semester Genap 2022/2023 Kelas B dan untuk lainnya
 # Fakultas Ilmu Komputer (Filkom), Universitas Brawijaya (UB) 2023.
 
 # Dosen Pengampu:
