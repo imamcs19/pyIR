@@ -86,7 +86,7 @@ FrameWeb_atas = """
 <button onclick="window.location.href='/'" class="btn btn-outline btn-rounded btn-info">
     <i class="ti-arrow-left m-l-5"></i>
     <span>Back Home</span>
-</button> All Project 
+</button> All Project
 
 {{ self.title() }}
     All Project
@@ -102,7 +102,7 @@ Z_z = FrameWeb_bawah
 
 # @app.route('/')
 # def hello_ppm():
-#     return 'Hello Students | Koding Pengantar Pembelajaran Mesin (PPM) pada Teknologi Cloud :D'
+#     return 'Hello Students | Koding IR pada Teknologi Cloud :D'
 
 @app.route('/contoh_exp_matrix', methods=['POST', 'GET'])
 def contoh_exp_matrix():
@@ -888,6 +888,108 @@ def code_2_1_2():
         '''
     return render_template_string(A_a+template_view+Z_z, basis_all = zip(basis_10, basis_2, basis_8, basis_16))
 
+# Latihan Buat koding tf_idf, w2vec dengan:
+# a. Koding dengan membuat mandiri dengan referensi misal dari github tetapi dimodifikasi
+# b. Koding dengan chatGPT, lalu modifikasi
+# Pastikan dengan kumpulan data dokumen yang sama sebagai input,
+# dari a & b menghasilkan hasil keluaran yang sama
+
+@app.route('/tf_idf', methods=['POST','GET'])
+def tf_idf():
+
+    # data = {
+    #     'dataset1': ['This is the first document.', 'This is the second document.', 'And this is the third one.'],
+    #     'dataset2': ['This is another document.', 'This is a different document.']
+    # }
+
+    # data = request.json['data'] # data is a list of documents
+    # text = request.json.get('text', '')
+    # data = request.json.get('data', '')
+
+    data = ['This is the first document', 'This is the second document.', 'And this is the third one.', 'Is this the first document?']
+
+    # $ curl -X POST -H 'Content-Type: application/json' -d '{"text": "document"}' http://localhost:5000/tfidf
+    # {
+    #   "and_2": 0.3333333333333333,
+    #   "another_0": 0.5,
+    #   "different_1": 0.5,
+    #   "document_0": 0.2672612419124244,
+    #   "document_1": 0.2672612419124244,
+    #   "is_0": 0.223606797749979,
+    #   "is_1": 0.223606797749979,
+    #   "the_0": 0.223606797749979,
+    #   "this_0": 0.223606797749979,
+    #   "this_1": 0.223606797749979
+    # }
+
+
+    # {
+    #     "data": [
+    #         "This is the first document.",
+    #         "This is the second document.",
+    #         "And this is the third one.",
+    #         "Is this the first document?"
+    #     ]
+    # }
+
+    # {
+    # "This is the first document.": 0.3943578806202318,
+    # "This is the second document.": 0.3943578806202318,
+    # "And this is the third one.": 0.4607549653699686,
+    # "Is this the first document?": 0.3943578806202318
+    # }
+
+
+
+    # Tokenize the documents
+    tokenized_docs = [doc.split() for doc in data]
+
+    # Compute the term frequency (TF) for each word in each document
+    word_counts = []
+    for doc in tokenized_docs:
+        word_count = {}
+        for word in doc:
+            if word in word_count:
+                word_count[word] += 1
+            else:
+                word_count[word] = 1
+        word_counts.append(word_count)
+
+    # Compute the inverse document frequency (IDF) for each word
+    num_docs = len(data)
+    idf = {}
+    for word in set(word for doc in tokenized_docs for word in doc):
+        num_docs_with_word = sum(1 for doc in tokenized_docs if word in doc)
+        idf[word] = math.log10(num_docs / num_docs_with_word)
+
+    # Compute the TF-IDF score for each word in each document
+    tfidf_scores = []
+    for doc_word_counts in word_counts:
+        tfidf_scores.append({
+            word: count * idf[word]
+            for word, count in doc_word_counts.items()
+        })
+
+    # Compute the mean TF-IDF score for each document
+    mean_tfidf_scores = [sum(doc_tfidf.values()) / len(doc_tfidf) for doc_tfidf in tfidf_scores]
+
+    # Create a dictionary of document to mean TF-IDF score
+    result = {}
+    for i, doc in enumerate(data):
+        result[doc] = mean_tfidf_scores[i]
+
+    # return result
+    return jsonify(result)
+
+
+# @app.route('/tf_idf', methods=['POST','GET'])
+# def tf_idf():
+#     return 'koding utk tf-idf'
+
+@app.route('/w2vec', methods=['POST','GET'])
+def w2vec():
+    return 'koding utk w2vec'
+
 @app.route('/code_2_1_2_2', methods=["POST", "GET"])
 def code_2_1_2_2():
     # mencoba konversi bilangan "Decimal ( base r=10 ) atau basis 10" |
@@ -1450,18 +1552,26 @@ def manipulate_tabel(aksi):
     if aksi == 'c':
         str_info = 'tabel berhasil dibuat :D'
         # create tabel
+        # db.execute("""
+        # CREATE TABLE IF NOT EXISTS data_cronjob
+        # (tipe_run TEXT, date_pembuatan DATETIME,
+        # teks_call_sintaks TEXT,
+        # keterangan TEXT,
+        # date_masa_berlaku DATETIME)
+        # """)
+
         db.execute("""
-        CREATE TABLE IF NOT EXISTS data_cronjob
-        (tipe_run TEXT, date_pembuatan DATETIME,
-        teks_call_sintaks TEXT,
-        keterangan TEXT,
-        date_masa_berlaku DATETIME)
+        CREATE TABLE IF NOT EXISTS fields
+        (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT,
+        type TEXT)
         """)
+
+        # SELECT id, name, type FROM fields
     elif aksi== 'd':
         str_info = 'tabel berhasil dihapus :D'
         # hapus tabel
         db.execute("""
-        DROP TABLE IF EXISTS data_cronjob
+        DROP TABLE IF EXISTS fields
         """)
 
     conn.commit()
@@ -2791,12 +2901,13 @@ def myadmin(none_atau_lainnya=None):
         # return str_info
 
         if request.method == 'POST': # dioperasikan dihalaman sendiri tanpa send ke route lain, misal /myadmin
-            
+
             var1_in = request.form['nama_tabel']
             var2_in = request.form['teks_sintaks']
 
             # untuk mengkondisikan nama tabel tidak boleh ada spasi dan hanya a-z dan angka
-            # var1_in = var1_in.replace(" ","_").lower()
+            var1_in = " ".join(var1_in.split())
+            var1_in = var1_in.replace(" ","_").lower()
             filter_var1_in = "_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
             getVals_base_filter_var1_in = list(filter(lambda x: x in filter_var1_in, var1_in))
@@ -2905,6 +3016,660 @@ def myadmin(none_atau_lainnya=None):
             db.close()
             conn.close()
             return render_template_string(A_a+template_view+Z_z, var_tabel_myadmin = var_tabel_myadmin_in)
+
+# import plotly.graph_objs as go
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# import pandas as pd
+
+# # Define a sample corpus
+# corpus = [
+#     "This is the first document.",
+#     "This document is the second document.",
+#     "And this is the third one.",
+#     "Is this the first document?",
+# ]
+
+# # Calculate the TF-IDF matrix
+# vectorizer = TfidfVectorizer()
+# tfidf = vectorizer.fit_transform(corpus)
+# df_tfidf = pd.DataFrame(tfidf[0].T.todense(), index=vectorizer.get_feature_names(), columns=["tfidf"])
+# df_tfidf = df_tfidf.sort_values('tfidf', ascending=False)
+
+# # Define a Plotly graph object
+# fig = go.Figure(
+#     data=[go.Bar(x=df_tfidf.index, y=df_tfidf['tfidf'])],
+#     layout_title_text="TF-IDF",
+# )
+
+# # Define a Flask route to render the graph
+# @app.route("/viz_tf_idf")
+# def viz_tf_idf():
+#     # Render the template with the Plotly graph
+#     return render_template_string("""
+#         <div>{{ plot_div|safe }}</div>
+#         {{ plot_script|safe }}
+#     """, plot_div=fig.to_html(full_html=False), plot_script=fig.to_js())
+
+# app.config['DATABASE'] = 'data.db'
+
+# def get_db():
+#     db = sqlite3.connect(app.config['DATABASE'])
+#     db.row_factory = sqlite3.Row
+#     return db
+
+# @app.route('/gen_form', methods = ['GET','POST'])
+# def gen_form():
+#     # db = get_db()
+#     # fields = db.execute('SELECT id, name, type FROM fields').fetchall()
+
+#     conn = connect_db()
+#     db = conn.cursor()
+
+#     fields = db.execute(""" SELECT id, name, type FROM fields """).fetchall()
+
+#     # var_tabel_myadmin_in = c.fetchall()
+
+#     conn.commit()
+#     # db.close()
+#     # conn.close()
+
+#     db.close()
+#     conn.close()
+
+#     return render_template_string("""
+#         <!DOCTYPE html>
+#         <html>
+#           <head>
+#             <title>Form Fields</title>
+#           </head>
+#           <body>
+#             <form method="post">
+#               {% for field in fields %}
+#                 {% if field.type == 'text' %}
+#                   <label>{{ field.name }}</label>
+#                   <input type="text" name="{{ field.name }}">
+#                 {% elif field.type == 'textarea' %}
+#                   <label>{{ field.name }}</label>
+#                   <textarea name="{{ field.name }}"></textarea>
+#                 {% endif %}
+#               {% endfor %}
+#               <input type="submit" value="Submit">
+#             </form>
+#           </body>
+#         </html>
+
+#     """, fields=fields)
+
+#     # return render_template('index.html', fields=fields)
+
+@app.route('/gen_form')
+def gen_form():
+    return render_template_string(A_a+"""
+    <!--<!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <title>Bootstrap Input Fields Example</title>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.1/css/bootstrap.min.css">
+    </head>
+    <body>-->
+  <div class="container mt-5">
+    <form>
+      <div class="mb-3">
+        <label for="name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="name" placeholder="Enter name">
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+        <input type="email" class="form-control" id="email" placeholder="Enter email">
+      </div>
+      <div class="mb-3">
+        <label for="phone" class="form-label">Phone number</label>
+        <input type="tel" class="form-control" id="phone" placeholder="Enter phone number">
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" placeholder="Enter password">
+      </div>
+      <div class="mb-3">
+        <label for="message" class="form-label">Message</label>
+        <textarea class="form-control" id="message" rows="3" placeholder="Enter message"></textarea>
+      </div>
+      <div class="mb-3 d-none">
+        <input type="hidden" class="form-control" id="hidden-field" value="hidden-value">
+      </div>
+      <div class="mb-3">
+        <label for="file1" class="form-label">File 1</label>
+        <input type="file" class="form-control" id="file1">
+      </div>
+      <div class="mb-3">
+        <label for="file2" class="form-label">File 2</label>
+        <input type="file" class="form-control" id="file2">
+      </div>
+      <button type="submit" class="btn btn-primary">Primary</button>
+      <!--</body>
+      </html>-->
+
+    """+Z_z)
+
+# save data ke sqlite base gen_form1
+# query:
+# flask code using render_template_string to save data from input field, textarea, hidden field, and file field to database using import sqlite3
+#
+# from flask import Flask, render_template_string, request
+# import sqlite3
+
+# app = Flask(__name__)
+
+# # SQLite database file path
+# DB_FILE = 'database.db'
+
+# # Create table to store form data
+# def create_table():
+#     conn = sqlite3.connect(DB_FILE)
+#     c = conn.cursor()
+#     c.execute('''CREATE TABLE IF NOT EXISTS form_data
+#                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
+#                  name TEXT NOT NULL,
+#                  email TEXT NOT NULL,
+#                  message TEXT NOT NULL,
+#                  attachment BLOB)''')
+#     conn.commit()
+#     conn.close()
+
+# # Save form data to SQLite database
+# def save_data(name, email, message, attachment):
+#     conn = sqlite3.connect(DB_FILE)
+#     c = conn.cursor()
+#     c.execute('''INSERT INTO form_data (name, email, message, attachment)
+#                  VALUES (?, ?, ?, ?)''', (name, email, message, attachment))
+#     conn.commit()
+#     conn.close()
+
+# # Render form template
+# template = '''
+# <form method="POST" enctype="multipart/form-data">
+#     <label for="name">Name:</label><br>
+#     <input type="text" id="name" name="name" required><br>
+#     <label for="email">Email:</label><br>
+#     <input type="email" id="email" name="email" required><br>
+#     <label for="message">Message:</label><br>
+#     <textarea id="message" name="message" rows="4" cols="50" required></textarea><br>
+#     <input type="hidden" name="hidden_field" value="hidden_value">
+#     <label for="attachment">Attachment:</label><br>
+#     <input type="file" id="attachment" name="attachment"><br>
+#     <input type="submit" value="Submit">
+# </form>
+# '''
+
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     if request.method == 'POST':
+#         name = request.form['name']
+#         email = request.form['email']
+#         message = request.form['message']
+#         attachment = request.files.get('attachment', None)
+#         if attachment:
+#             attachment_data = attachment.read()
+#         else:
+#             attachment_data = None
+#         save_data(name, email, message, attachment_data)
+#         return 'Data saved to database!'
+#     else:
+#         return render_template_string(template)
+
+# if __name__ == '__main__':
+#     create_table()
+#     app.run(debug=True)
+
+
+
+@app.route('/gen_form1', methods = ['GET','POST'])
+def gen_form1():
+    # Define the number of fields you want to generate
+    num_inputs = 6
+    num_textareas = 2
+    num_hidden_fields = 1
+    num_file_fields = 1
+
+    # Define the template for each field
+    input_template = '<div class="form-group"><label for="input{{ num }}">Input {{ num }}:</label><input type="text" class="form-control" id="input{{ num }}"></div>'
+    textarea_template = '<div class="form-group"><label for="textarea{{ num }}">Textarea {{ num }}:</label><textarea class="form-control" id="textarea{{ num }}"></textarea></div>'
+    hidden_template = '<div class="form-group"><input type="hidden" class="form-control" id="hidden{{ num }}"></div>'
+    file_template = '<div class="form-group"><label for="file{{ num }}">File {{ num }}:</label><input type="file" class="form-control-file" id="file{{ num }}"></div>'
+
+    # Generate the HTML code for each field using a loop
+    input_fields = ''.join([render_template_string(input_template, num=i) for i in range(1, num_inputs+1)])
+    textarea_fields = ''.join([render_template_string(textarea_template, num=i) for i in range(1, num_textareas+1)])
+    hidden_fields = ''.join([render_template_string(hidden_template, num=i) for i in range(1, num_hidden_fields+1)])
+    file_fields = ''.join([render_template_string(file_template, num=i) for i in range(1, num_file_fields+1)])
+
+    # Combine all the fields into a single HTML code
+    fields = input_fields + textarea_fields + hidden_fields + file_fields
+
+    # Define the overall HTML template that includes the fields
+    html_template = '''
+    <!--<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Bootstrap Form</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    </head>
+    <body> -->
+        <div class="container">
+            <h1>Bootstrap Form</h1>
+            <form action="/gen_form1" method="POST">
+                {% autoescape off %}
+                {{ fields }}
+                {% endautoescape %}
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script> -->
+        <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script> -->
+    <!--</body>
+    </html>-->
+    '''
+
+    # Render the final HTML code with the fields
+    return render_template_string(A_a+html_template+Z_z, fields=fields)
+
+
+@app.route('/gen_form2')
+def gen_form2():
+    return render_template_string(A_a+"""
+    <!--<!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>Bootstrap Example</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+      </head>
+      <body>-->
+
+        <div class="container mt-5">
+          <h1>Bootstrap Example</h1>
+          <form>
+            <div class="form-group">
+              <label for="inputField">Input Field</label>
+              <input type="text" class="form-control" id="inputField" placeholder="Enter text">
+            </div>
+          </form>
+          <div class="row mt-3">
+            <div class="col-md-6">
+              <h3>Text Element</h3>
+              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed at ultricies orci, ac malesuada turpis. Nam ut justo vitae velit ultricies bibendum. Fusce elementum mauris id urna gravida, sit amet aliquam odio vestibulum. Fusce ut ante nec ex feugiat convallis a ac turpis. Morbi faucibus nulla nibh, sed finibus lectus mollis nec. Sed porta, velit in maximus suscipit, ipsum arcu aliquam mauris, vel commodo mi mauris ac nulla.</p>
+            </div>
+            <div class="col-md-6">
+              <h3>Image</h3>
+              <p><img src="https://www.w3schools.com/bootstrap4/chicago.jpg" alt="Chicago" class="img-fluid"></p>
+            </div>
+          </div>
+          <div class="mt-3">
+            <h3>Embedded Video</h3>
+            <div class="embed-responsive embed-responsive-16by9">
+              <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>
+            </div>
+          </div>
+        </div>
+    <!--</body>
+    </html>-->
+
+    """+Z_z)
+
+@app.route('/gen_form3')
+def gen_form3():
+    return render_template_string(A_a+"""
+    <!--<!DOCTYPE html>
+    <html>
+    <head>
+    	<title>Bootstrap Form with CAPTCHA</title> -->
+    	<!-- Load Bootstrap CSS -->
+    	<!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
+    	<!-- Load Google reCAPTCHA API -->
+    	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!--</head>-->
+    <!--<body> -->
+
+    	<div class="container mt-4">
+    		<!-- Form -->
+    		<form action="#" method="post">
+    			<!-- Input field -->
+    			<div class="form-group">
+    				<label for="inputField">Input Field:</label>
+    				<input type="text" class="form-control" id="inputField" name="inputField">
+    			</div>
+
+    			<!-- Two images -->
+    			<div class="row">
+    				<div class="col">
+    					<img src="https://www.w3schools.com/bootstrap4/chicago.jpg" class="img-fluid" alt="Image 1">
+    				</div>
+    				<div class="col">
+    					<img src="https://www.w3schools.com/bootstrap4/chicago.jpg" class="img-fluid" alt="Image 2">
+    				</div>
+    			</div>
+
+    			<!-- Embedded video -->
+    			<div class="embed-responsive embed-responsive-16by9 mt-4">
+    				<iframe class="embed-responsive-item" src="https://www.youtube.com/embed/Bp49uOYMNrk"></iframe>
+    			</div>
+
+    			<!-- CAPTCHA security element -->
+    			<div class="mt-4">
+    			    <!--
+    			    app.secret_key = 'filkomub2223^&&*(&^(filkom#BJH#G#VB#MatKom99nDataPyICS_ap938255bnUB'
+    			    -->
+    				<div class="g-recaptcha" data-sitekey="filkomub2223^&&*(&^(filkom#BJH#G#VB#MatKom99nDataPyICS_ap938255bnUB"></div>
+    			</div>
+
+    			<!-- Submit button -->
+    			<button type="submit" class="btn btn-primary mt-4">Submit</button>
+    		</form>
+    	</div>
+
+    	<!-- Load Bootstrap JS -->
+    	<!--<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>-->
+    	<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>-->
+    	<!--<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>-->
+
+    <!--</body>
+    </html>-->
+
+    """+Z_z)
+
+
+# kode raw untuk gen_form dan save ke database sqlite3
+# ================================
+# query:
+# flask code to generate html bootstrap file using render_template_string that how many input field, textarea, elemen text, images, embed video and captcha save to sqlite3
+#
+# from flask import Flask, render_template_string, request, redirect, url_for
+# import sqlite3
+# import os
+# from werkzeug.utils import secure_filename
+
+# app = Flask(__name__)
+# app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# @app.route('/')
+# def index():
+#     # Define the number of fields you want to generate
+#     num_inputs = 2
+#     num_textareas = 1
+#     num_element_texts = 1
+#     num_images = 1
+#     num_videos = 1
+
+#     # Define the template for each field
+#     input_template = '<div class="form-group"><label for="input{{ num }}">Input {{ num }}:</label><input type="text" class="form-control" id="input{{ num }}" name="input{{ num }}"></div>'
+#     textarea_template = '<div class="form-group"><label for="textarea{{ num }}">Textarea {{ num }}:</label><textarea class="form-control" id="textarea{{ num }}" name="textarea{{ num }}"></textarea></div>'
+#     element_text_template = '<div class="form-group"><label for="element_text{{ num }}">Element Text {{ num }}:</label><p class="form-control-static" id="element_text{{ num }}" name="element_text{{ num }}"></p></div>'
+#     image_template = '<div class="form-group"><label for="image{{ num }}">Image {{ num }}:</label><input type="file" class="form-control-file" id="image{{ num }}" name="image{{ num }}"></div>'
+#     video_template = '<div class="form-group"><label for="video{{ num }}">Video {{ num }}:</label><input type="text" class="form-control" id="video{{ num }}" name="video{{ num }}"></div>'
+#     captcha_template = '<div class="form-group"><img src="{{ captcha }}" alt="Captcha"><input type="text" class="form-control" id="captcha" name="captcha"></div>'
+
+#     # Generate the HTML code for each field using a loop
+#     input_fields = ''.join([render_template_string(input_template, num=i) for i in range(1, num_inputs+1)])
+#     textarea_fields = ''.join([render_template_string(textarea_template, num=i) for i in range(1, num_textareas+1)])
+#     element_text_fields = ''.join([render_template_string(element_text_template, num=i) for i in range(1, num_element_texts+1)])
+#     image_fields = ''.join([render_template_string(image_template, num=i) for i in range(1, num_images+1)])
+#     video_fields = ''.join([render_template_string(video_template, num=i) for i in range(1, num_videos+1)])
+#     captcha_url = url_for('captcha')
+
+#     # Combine all the fields into a single HTML code
+#     fields = input_fields + textarea_fields + element_text_fields + image_fields + video_fields + captcha_template
+
+#     # Define the overall HTML template that includes the fields
+#     html_template = '''
+#     <!DOCTYPE html>
+#     <html lang="en">
+#     <head>
+#         <meta charset="UTF-8">
+#         <title>Bootstrap Form</title>
+#         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+#     </head>
+#     <body>
+#         <div class="container">
+#             <h1>Bootstrap Form</h1>
+#             <form method="POST"
+
+# ================================
+# query:
+# flask code to generate html bootstrap file using render_template_string that how many input field, images, embed video and captcha save to sqlite3
+#
+# from flask import Flask, render_template_string, request, redirect, url_for
+# import sqlite3
+# import os
+# from werkzeug.utils import secure_filename
+
+# app = Flask(__name__)
+# app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# @app.route('/')
+# def index():
+#     # Define the number of fields you want to generate
+#     num_inputs = 2
+#     num_images = 1
+#     num_videos = 1
+
+#     # Define the template for each field
+#     input_template = '<div class="form-group"><label for="input{{ num }}">Input {{ num }}:</label><input type="text" class="form-control" id="input{{ num }}" name="input{{ num }}"></div>'
+#     image_template = '<div class="form-group"><label for="image{{ num }}">Image {{ num }}:</label><input type="file" class="form-control-file" id="image{{ num }}" name="image{{ num }}"></div>'
+#     video_template = '<div class="form-group"><label for="video{{ num }}">Video {{ num }}:</label><input type="text" class="form-control" id="video{{ num }}" name="video{{ num }}"></div>'
+#     captcha_template = '<div class="form-group"><img src="{{ captcha }}" alt="Captcha"><input type="text" class="form-control" id="captcha" name="captcha"></div>'
+
+#     # Generate the HTML code for each field using a loop
+#     input_fields = ''.join([render_template_string(input_template, num=i) for i in range(1, num_inputs+1)])
+#     image_fields = ''.join([render_template_string(image_template, num=i) for i in range(1, num_images+1)])
+#     video_fields = ''.join([render_template_string(video_template, num=i) for i in range(1, num_videos+1)])
+#     captcha_url = url_for('captcha')
+
+#     # Combine all the fields into a single HTML code
+#     fields = input_fields + image_fields + video_fields + captcha_template
+
+#     # Define the overall HTML template that includes the fields
+#     html_template = '''
+#     <!DOCTYPE html>
+#     <html lang="en">
+#     <head>
+#         <meta charset="UTF-8">
+#         <title>Bootstrap Form</title>
+#         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+#     </head>
+#     <body>
+#         <div class="container">
+#             <h1>Bootstrap Form</h1>
+#             <form method="POST" enctype="multipart/form-data">
+#                 {{ fields }}
+#                 <button type="submit" class="btn btn-primary">Submit</button>
+#             </form>
+#         </div>
+#     </body>
+#     </html>
+#     '''
+
+#     # Render the HTML code with the fields using render_template_string
+#     html = render_template_string(html_template, fields=fields, captcha=captcha_url)
+
+#     return html
+
+# @app.route('/captcha')
+# def captcha():
+#     # Generate a random captcha code
+#     captcha_code = os.urandom(10).hex()
+
+#     # Save the captcha code to the session for validation later
+#     session['captcha_code'] = captcha_code
+
+#     # Generate the captcha image
+#     captcha_image = generate_captcha_image(captcha_code)
+
+#     # Serve the captcha image as a Flask response
+#     response = make_response(captcha_image)
+#     response.headers.set('Content-Type', 'image/png')
+#     return response
+
+# @app.route('/',
+
+# ================================
+# query:
+# flask code to generate html bootstrap file using render_template_string that how many input field, and captcha save to sqlite3
+#
+# from flask import Flask, render_template_string, request, redirect, url_for
+# import sqlite3
+# import os
+# from werkzeug.utils import secure_filename
+
+# app = Flask(__name__)
+# app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# @app.route('/')
+# def index():
+#     # Define the number of fields you want to generate
+#     num_inputs = 2
+
+#     # Define the template for each field
+#     input_template = '<div class="form-group"><label for="input{{ num }}">Input {{ num }}:</label><input type="text" class="form-control" id="input{{ num }}" name="input{{ num }}"></div>'
+#     captcha_template = '<div class="form-group"><img src="{{ captcha }}" alt="Captcha"><input type="text" class="form-control" id="captcha" name="captcha"></div>'
+
+#     # Generate the HTML code for each field using a loop
+#     input_fields = ''.join([render_template_string(input_template, num=i) for i in range(1, num_inputs+1)])
+#     captcha_url = url_for('captcha')
+
+#     # Combine all the fields into a single HTML code
+#     fields = input_fields + captcha_template
+
+#     # Define the overall HTML template that includes the fields
+#     html_template = '''
+#     <!DOCTYPE html>
+#     <html lang="en">
+#     <head>
+#         <meta charset="UTF-8">
+#         <title>Bootstrap Form</title>
+#         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+#     </head>
+#     <body>
+#         <div class="container">
+#             <h1>Bootstrap Form</h1>
+#             <form method="POST" enctype="multipart/form-data">
+#                 {{ fields }}
+#                 <button type="submit" class="btn btn-primary">Submit</button>
+#             </form>
+#         </div>
+#     </body>
+#     </html>
+#     '''
+
+#     # Render the HTML code with the fields using render_template_string
+#     html = render_template_string(html_template, fields=fields, captcha=captcha_url)
+
+#     return html
+
+# @app.route('/captcha')
+# def captcha():
+#     # Generate a random captcha code
+#     captcha_code = os.urandom(10).hex()
+
+#     # Save the captcha code to the session for validation later
+#     session['captcha_code'] = captcha_code
+
+#     # Generate the captcha image
+#     captcha_image = generate_captcha_image(captcha_code)
+
+#     # Serve the captcha image as a Flask response
+#     response = make_response(captcha_image)
+#     response.headers.set('Content-Type', 'image/png')
+#     return response
+
+# @app.route('/', methods=['POST'])
+# def submit_form():
+#     # Get the form data from the request object
+#     inputs = [request.form.get('input{}'.format(i)) for i in range(1, num_inputs+1)]
+#     captcha = request.form.get('captcha')
+
+#     # Validate the captcha
+#     if captcha != session['captcha_code']:
+#         return redirect(url_for('index'))
+
+#     # Save the form data to the SQLite3 database
+#     conn = sqlite3.connect('form_data.db')
+#     c = conn.cursor()
+#     c.execute('CREATE TABLE IF NOT EXISTS form_data (id INTEGER PRIMARY KEY, {})'.format(', '.join(['input{} TEXT'.format(i) for i in range(1, num_inputs+1)])))
+#     c.execute('INSERT INTO form_data ({}) VALUES ({})'.format(', '.join(['input{}'.format(i) for i in range(1, num
+
+# ================================
+# query:
+# flask code to generate html bootstrap file using render_template_string that how many input field save to sqlite3
+#
+# from flask import Flask, render_template_string, request, redirect, url_for
+# import sqlite3
+
+# app = Flask(__name__)
+
+# @app.route('/')
+# def index():
+#     # Define the number of fields you want to generate
+#     num_inputs = 3
+
+#     # Define the template for each field
+#     input_template = '<div class="form-group"><label for="input{{ num }}">Input {{ num }}:</label><input type="text" class="form-control" id="input{{ num }}" name="input{{ num }}"></div>'
+
+#     # Generate the HTML code for each field using a loop
+#     input_fields = ''.join([render_template_string(input_template, num=i) for i in range(1, num_inputs+1)])
+
+#     # Combine all the fields into a single HTML code
+#     fields = input_fields
+
+#     # Define the overall HTML template that includes the fields
+#     html_template = '''
+#     <!DOCTYPE html>
+#     <html lang="en">
+#     <head>
+#         <meta charset="UTF-8">
+#         <title>Bootstrap Form</title>
+#         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+#     </head>
+#     <body>
+#         <div class="container">
+#             <h1>Bootstrap Form</h1>
+#             <form method="POST">
+#                 {{ fields }}
+#                 <button type="submit" class="btn btn-primary">Submit</button>
+#             </form>
+#         </div>
+#     </body>
+#     </html>
+#     '''
+
+#     # Render the HTML code with the fields using render_template_string
+#     html = render_template_string(html_template, fields=fields)
+
+#     return html
+
+# @app.route('/', methods=['POST'])
+# def submit_form():
+#     # Get the form data from the request object
+#     inputs = [request.form.get('input{}'.format(i)) for i in range(1, num_inputs+1)]
+
+#     # Save the form data to the SQLite3 database
+#     conn = sqlite3.connect('form_data.db')
+#     c = conn.cursor()
+#     c.execute('CREATE TABLE IF NOT EXISTS form_data (id INTEGER PRIMARY KEY, {})'.format(', '.join(['input{} TEXT'.format(i) for i in range(1, num_inputs+1)])))
+#     c.execute('INSERT INTO form_data ({}) VALUES ({})'.format(', '.join(['input{}'.format(i) for i in range(1, num_inputs+1)]), ', '.join(['?' for i in range(num_inputs)])), inputs)
+#     conn.commit()
+#     conn.close()
+
+#     return redirect(url_for('index'))
+# ======================================
+
+
 
 @app.route('/launchpad_menu')
 def launchpad_menu():
