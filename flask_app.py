@@ -64,7 +64,7 @@ import uuid
 
 CORS(app, resources=r'/api/*')
 
-app.secret_key = 'filkomub2223^&&*(&^(filkom#BJH#G#VB#MatKom99nDataPyICS_ap938255bnUB'
+app.secret_key = 'filkomub2223^&&*(&^(filkom#BJH#G#VB#IR99nDataPyICS_ap938255bnUB'
 
 # keterangan:
 # "#" adalah untuk comment
