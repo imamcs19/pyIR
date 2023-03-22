@@ -12,6 +12,9 @@ $ mv -f pyIR/* mysite/
 5. Selesai :D
 ======================================
 
+Link untuk membuat Twitter API:
+https://developer.twitter.com/en/apps
+
 # oauth.consumerKey=JEj5tRSA9JWjWV6imMOrUIVWV
 # oauth.consumerSecret=7MEa00KHpUbjxble8pdlV74qPbvW2OHqLtjt45QQraJaAzRmAh
 # oauth.accessToken=935208713551364097-W9Oy0IS2M1dRUQS5MZ6Dnz18BkHUP80
