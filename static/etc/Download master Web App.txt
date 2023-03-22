@@ -16,3 +16,68 @@ oauth.consumerKey=JEj5tRSA9JWjWV6imMOrUIVWV
 oauth.consumerSecret=7MEa00KHpUbjxble8pdlV74qPbvW2OHqLtjt45QQraJaAzRmAh
 oauth.accessToken=935208713551364097-W9Oy0IS2M1dRUQS5MZ6Dnz18BkHUP80
 oauth.accessTokenSecret=jCANa7K7werTP2X1mnLlcRBFDHAJt9TZSCbC77FSNCj50
+----------------------
+
+from flask import Flask, render_template_string
+import tweepy
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
+# Twitter API credentials
+consumer_key = 'your_consumer_key'
+consumer_secret = 'your_consumer_secret'
+access_token = 'your_access_token'
+access_secret = 'your_access_secret'
+
+# initialize Flask app
+app = Flask(__name__)
+
+# define route to get Twitter data and plot it
+@app.route('/plot_twitter_data')
+def plot_twitter_data():
+    # authenticate with Twitter API
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_secret)
+    api = tweepy.API(auth)
+
+    # fetch recent tweets containing a specific hashtag
+    search_query = '#datascience'
+    tweets = api.search(q=search_query, count=100)
+
+    # extract tweet text and number of likes for each tweet
+    tweet_text = []
+    tweet_likes = []
+    for tweet in tweets:
+        tweet_text.append(tweet.text)
+        tweet_likes.append(tweet.favorite_count)
+
+    # create a plot of tweet likes
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Scatter(x=list(range(len(tweet_likes))), y=tweet_likes, name="Likes"),
+        secondary_y=False,
+    )
+    fig.update_xaxes(title_text="Tweet")
+    fig.update_yaxes(title_text="Likes", secondary_y=False)
+
+    # render the template with the plot
+    return render_template_string(
+        '''
+        <html>
+        <head>
+            <title>Twitter Data Plot</title>
+        </head>
+        <body>
+            <h1>Twitter Data Plot</h1>
+            <div>
+                {{ plot_div|safe }}
+            </div>
+        </body>
+        </html>
+        ''',
+        plot_div=fig.to_html(full_html=False),
+    )
+
+# # run the Flask app
+# if __name__ == '__main__':
+#    app.run(debug=True)
