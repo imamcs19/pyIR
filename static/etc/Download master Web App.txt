@@ -12,11 +12,11 @@ $ mv -f pyIR/* mysite/
 5. Selesai :D
 ======================================
 
-oauth.consumerKey=JEj5tRSA9JWjWV6imMOrUIVWV
-oauth.consumerSecret=7MEa00KHpUbjxble8pdlV74qPbvW2OHqLtjt45QQraJaAzRmAh
-oauth.accessToken=935208713551364097-W9Oy0IS2M1dRUQS5MZ6Dnz18BkHUP80
-oauth.accessTokenSecret=jCANa7K7werTP2X1mnLlcRBFDHAJt9TZSCbC77FSNCj50
-----------------------
+# oauth.consumerKey=JEj5tRSA9JWjWV6imMOrUIVWV
+# oauth.consumerSecret=7MEa00KHpUbjxble8pdlV74qPbvW2OHqLtjt45QQraJaAzRmAh
+# oauth.accessToken=935208713551364097-W9Oy0IS2M1dRUQS5MZ6Dnz18BkHUP80
+# oauth.accessTokenSecret=jCANa7K7werTP2X1mnLlcRBFDHAJt9TZSCbC77FSNCj50
+# ----------------------
 
 from flask import Flask, render_template_string
 import tweepy
@@ -30,7 +30,7 @@ access_token = 'your_access_token'
 access_secret = 'your_access_secret'
 
 # initialize Flask app
-app = Flask(__name__)
+# app = Flask(__name__)
 
 # define route to get Twitter data and plot it
 @app.route('/plot_twitter_data')
