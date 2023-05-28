@@ -101,7 +101,7 @@ FrameWeb_bawah = """
 Z_z = FrameWeb_bawah
 
 # @app.route('/')
-# def hello_ppm():
+# def hello_ir():
 #     return 'Hello Students | Koding IR pada Teknologi Cloud :D'
 
 @app.route('/contoh_exp_matrix', methods=['POST', 'GET'])
